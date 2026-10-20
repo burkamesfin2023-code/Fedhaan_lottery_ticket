@@ -427,7 +427,7 @@ def health_check():
     return jsonify({"status": "ok", "service": "Fedhaan Lottery Ticket"})
 
 
-@app.post("/telegram")
+@app.post("/webhook")
 def telegram_webhook():
     expected_secret = os.environ.get("TELEGRAM_WEBHOOK_SECRET", "").strip()
     received_secret = request.headers.get("X-Telegram-Bot-Api-Secret-Token", "")
