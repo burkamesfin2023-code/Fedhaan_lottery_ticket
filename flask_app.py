@@ -7,7 +7,7 @@ from typing import Any
 import requests
 from flask import Flask, jsonify, request
 
-app = Flask(name)
+app = Flask(__name__)
 logging.basicConfig(level=logging.INFO)
 
 TICKET_COUNT = 150
@@ -17,8 +17,8 @@ TELEGRAM_TIMEOUT = 10
 
 
 class SupabaseError(Exception):
-    def init(self, message: str, status_code: int | None = None):
-        super().init(message)
+    def __init__(self, message: str, status_code: int | None = None):
+        super().__init__(message)
         self.status_code = status_code
 
 
@@ -135,7 +135,8 @@ def occupied_tickets() -> set[int]:
     return {int(row["ticket_number"]) for row in response.json()}
 
 
-def check_and_reset_round(chat_id: int) -> bool:"""If all tickets are booked, reset/archive them to start a new round."""
+def check_and_reset_round(chat_id: int) -> bool:
+    """If all tickets are booked, reset/archive them to start a new round."""
     occupied = occupied_tickets()
     if len(occupied) >= TICKET_COUNT:
         # Reset round by deleting or marking old bookings as ARCHIVED/COMPLETED
@@ -242,7 +243,8 @@ def handle_callback(callback: dict[str, Any]) -> None:
             reply_to_callback(callback_id, "That ticket is already taken.")
             return
 
-        if data.startswith("ticket:"):ticket_number = int(data.split(":", 1)[1])
+        if data.startswith("ticket:"):
+            ticket_number = int(data.split(":", 1)[1])
             if ticket_number < 1 or ticket_number > TICKET_COUNT:
                 reply_to_callback(callback_id, "That ticket number is not valid.")
                 return
@@ -455,7 +457,8 @@ def handle_admin_command(text: str, user_id: int, chat_id: int) -> bool:
             send_message(chat_id, "\n".join(lines[start : start + 25]))
         return True
 
-    if command == "/cashbook":if len(parts) < 3:
+    if command == "/cashbook":
+        if len(parts) < 3:
             send_message(chat_id, "Usage: /cashbook TICKET_NUMBER NAME_OR_PHONE")
             return True
         ticket_number = parts[1]
@@ -555,7 +558,8 @@ def handle_message(message: dict[str, Any]) -> None:
         command = text.split(maxsplit=1)[0].split("@", 1)[0].lower()
         if command in {"/start", "/help"}:
             handle_start(chat_id)
-        elif command in {"/book", "/tickets"}:if chat.get("type") != "private":
+        elif command in {"/book", "/tickets"}:
+            if chat.get("type") != "private":
                 send_message(chat_id, "Please open a private chat with the bot to book a ticket.")
             else:
                 show_tickets(chat_id)
@@ -597,4 +601,5 @@ def telegram_webhook():
 
 
 
+if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
